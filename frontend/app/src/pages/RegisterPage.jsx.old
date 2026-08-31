@@ -1,0 +1,102 @@
+// Import React hooks
+import { useState } from "react";
+
+// Login page component
+function RegisterPage() {
+
+  // State for new login email
+  const [email, setEmail] = useState("")
+
+  // State for new login username
+  const [username, setUsername] = useState("");
+
+  // State for new login password
+  const [password, setPassword] = useState("");
+
+  // Function to submit a new login request
+  const registerRequest = async () => {
+
+    // Send POST request to FastAPI
+    const response = await fetch("http://localhost:8000/register", {
+
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify({
+        email: email,
+        username: username,
+        password: password
+      })
+
+    });
+
+    // Convert response JSON
+    const newRegister = await response.json();
+    //console.log(newRegister)
+
+    // Clear input fields
+    setEmail("");
+    setUsername("");
+    setPassword("");
+  };
+
+
+
+  return (
+
+    <div style={{ padding: "40px" }}>
+
+      <h1>Register</h1>
+
+      {/* Create form to register a new account*/}
+
+      <div>
+
+        {/* Email input */}
+        <input
+          type="text"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        <br /><br />
+
+        {/* Username input */}
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+
+        <br /><br />
+
+        {/* Password input */}
+        <input
+            type="password"
+            placeholder="Password"
+            value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        <br /><br />
+
+        {/* Submit button */}
+        <button onClick={registerRequest}>
+          Register your account
+        </button>
+
+      </div>
+
+
+      <hr />
+
+    </div>
+  );
+}
+
+export default RegisterPage;

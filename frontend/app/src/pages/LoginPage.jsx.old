@@ -1,0 +1,42 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+
+function LoginPage({ setUser }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate(); // 🔑 hook for redirecting
+
+  const loginRequest = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.detail || "Login failed");
+      }
+
+      const data = await response.json();
+      setUser(data);          // ✅ set global user state
+      navigate("/posts");     // ✅ redirect to posts page
+    } catch (err) {
+      console.error("Login error:", err);
+    }
+  };
+
+  return (
+    <div>
+      <input value={username} onChange={e => setUsername(e.target.value)} />
+      <input value={password} onChange={e => setPassword(e.target.value)} type="password" />
+      <Button variant="contained" onClick={loginRequest}>Login</Button>
+    </div>
+  );
+}
+
+export default LoginPage;

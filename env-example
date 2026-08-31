@@ -1,0 +1,10 @@
+DB_HOST=replaceme
+DB_NAME=replaceme
+DB_USER=replaceme
+DB_PASSWORD=replaceme
+DB_PORT=replaceme
+PGA_EMAIL=replace_me
+PGA_PASSWORD=replace_me
+PGA_PORT=replace_me
+GOOGLE_SECRET_NAME=replaceme
+GOOGLE_PROJECT_ID=replaceme

@@ -1,0 +1,169 @@
+{/*
+  importing two react hooks 
+  useState → lets you store and update state (data that changes)
+  useEffect → lets you run code at specific times (like when the page loads)
+*/}
+
+import { useEffect, useState } from "react";
+import Button from '@mui/material/Button';
+
+
+{/* 
+  defining our Postspage component
+  It receives props:
+
+  user → the currently logged-in user
+  setUser → a function to update the user from the parent component on App.jsx
+
+  posts → holds the list of posts
+  setPosts → function to update that list
+  [] → starts as an empty array
+
+  title → stores input for post title
+  text → stores input for post content
+  Both start as empty strings
+  */}
+function PostsPage({ user, setUser }) {
+  const [posts, setPosts] = useState([]);
+  const [title, setTitle] = useState("");
+  const [text, setText] = useState("");
+
+  // Fetch posts after the component renders
+  useEffect(() => {
+    //Sends a GET request to our backend, and sends cookies for authentication
+    fetch("http://localhost:8000/posts", { credentials: "include" })
+      //Converts the response into JSON
+      .then((res) => res.json())
+      //Stores the fetched posts into our posts state
+      .then((data) => setPosts(data))
+      //The empty array [] = run this only once when the component mounts
+      // ie 'run on page load'
+      .catch((err) => console.error("Error fetching posts:", err));
+  }, []);
+  //Defining an async function to create a new post
+  const createPost = async () => {
+    try {
+      //Sends a request to our backend as a post, telling server we are sending json,
+      //and also including cookies
+      const res = await fetch("http://localhost:8000/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        //Sends the actual post data Converts { title, text } into JSON
+        body: JSON.stringify({ title, text }),
+      });
+      //if request fails, gets error message from backend and throws an error
+      if (!res.ok) throw new Error((await res.json()).detail || "Failed");
+      //Gets the created post from backend
+      const newPost = await res.json();
+      //Adds the new post to existing posts, prev = current posts, [...] = creates a new array
+      setPosts((prev) => [...prev, newPost]);
+      //Clears the input fields after submission
+      setTitle(""); setText(""); //handles any errors
+    } catch (err) { console.error(err); }
+  };
+  //Defining an async function to delete a post using its id
+  const deletePost = async (postId) => {
+    try {
+      //Sending request to delete specific post via DELETE method and include auth cookies
+      const res = await fetch(`http://localhost:8000/posts/${postId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      //If delete fails for any reason throw an error
+      if (!res.ok) throw new Error((await res.json()).detail);
+      //Removes the deleted post from UI and keeps all posts except the one with matching postId
+      //prev is the most up to date piece of state
+      //prev.filter goes through each item in the array Returns a new array keeping only the items where the condition is true
+      // P = every post in the array
+      //p.id !== postId means keep the post if its ID does NOT match postId
+      //remove the post if its ID DOES match postId
+      setPosts((prev) => prev.filter((p) => p.id !== postId));
+    } catch (err) { console.error(err); }
+  };
+
+  //Defining an async function to logout a user
+  const handleLogout = async () => {
+    try {
+      //calling the backend logout endpoint via post and include auth cookies
+      await fetch("http://localhost:8000/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+      //Clears user from state ie logs out user from state
+      setUser(null);//catch any errors if logout fails
+    } catch (err) {
+      console.error("Error logging out:", err);
+    }
+  };
+
+  return (
+    <div style={{ padding: "40px" }}>
+      <h1>Posts</h1>
+
+      {/* Logout button only renders if user exists
+        Calls logout function on click
+      */}
+      {user && (
+        <div style={{ marginBottom: "20px" }}>
+          Logged in as <strong>{user.username}</strong>{" "}
+          <Button variant="contained" onClick={handleLogout}>Logout</Button>
+        </div>
+      )}
+
+      {/* Create post form 
+      Controlled input, value comes from state
+      on change updates title state as user types
+      Same for post text and calls createPost on click
+      */}
+      <div>
+        <h2>Create Post</h2>
+        <input
+          type="text"
+          placeholder="Post title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        /><br /><br />
+        <textarea
+          placeholder="Post text"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        /><br /><br />
+        <Button variant="contained" onClick={createPost}>Create Post</Button>
+      </div>
+
+      <hr />
+
+      {/* Posts list 
+      
+      conditional rendering with short-circuit evaluation.
+      post.can_delete is expected to be a boolean (true or false).
+      The && operator in JavaScript returns:
+      the right-hand side if the left side is true
+      the left-hand side (i.e., false) if it’s false
+      In React terms
+
+      React will:
+
+      Render the button if post.can_delete === true
+      Render nothing if post.can_delete === false
+      
+
+      If post.can_delete is anything falsy (false, null, undefined, 0, ""), 
+      the button won’t render. So you’re relying on that value being correctly set.
+      
+      */}
+      <h2>All Posts</h2>
+      {posts.map((post) => (
+        <div key={post.id} style={{ border: "1px solid gray", padding: "10px", marginBottom: "10px" }}>
+          <h3>{post.title}</h3>
+          <p>Author: {post.author.username}</p>
+          <p>{post.text}</p>
+          {post.can_delete && <Button variant="contained" onClick={() => deletePost(post.id)}>Delete</Button>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default PostsPage;

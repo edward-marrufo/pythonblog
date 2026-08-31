@@ -1,0 +1,29 @@
+# app/routers/users.py
+from fastapi import APIRouter, Depends, HTTPException
+from typing import List, Optional
+from backend.app.db import get_db
+from backend.app.models.user import UserRegister, User
+from backend.app.core.security import hash_password, verify_password
+
+router = APIRouter(prefix="/register", tags=["register"])
+
+@router.post("/", response_model=User)
+def create_user(user: UserRegister, db = Depends(get_db)):
+    try:
+        with db.cursor() as cursor:
+            cursor.execute(
+    "INSERT INTO users (username, email, hashed_password) VALUES (?, ?, ?)",
+    (user.username, user.email, hash_password(user.password))
+)
+            #removing  RETURNING username, created_at" from the above query
+            #changing from one element to storing the whole row
+            #new_id = cursor.fetchone()[0] #get the auto-generated ID
+            row = cursor.fetchone()
+            db.commit()
+        return User(
+            username=row.username,
+            created_at=row.created_at
+            )
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))

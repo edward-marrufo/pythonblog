@@ -1,0 +1,15 @@
+[Unit]
+Description=Blog Docker Compose Stack
+Requires=podman.service
+After=podman.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+
+ExecStart=/usr/local/bin/blog-start.sh
+ExecStop=/usr/local/bin/blog-stop.sh
+
+[Install]
+WantedBy=multi-user.target

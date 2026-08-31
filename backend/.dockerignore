@@ -1,0 +1,50 @@
+# /backend/.dockerignore
+tests
+# Python cache files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyc
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Test files
+tests/
+
+# Pytest artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local environment files
+.env
+.env.*
+
+# Git
+.git/
+.gitignore
+
+# IDE/editor files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+
+# Bazel files (not needed inside runtime image)
+BUILD
+BUILD.bazel
+MODULE.bazel
+MODULE.bazel.lock
+
+# Documentation
+README*
+*.md
+
+# Docker files
+Dockerfile
+Dockerfile.dev
+.dockerignore

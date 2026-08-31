@@ -1,0 +1,5 @@
+API_DB_HOST=replace_me
+API_DB_NAME=db_name_goes_here
+API_DB_USER=replacem_me
+API_DB_PASSWORD=replace_me
+API_DB_PORT=replace_me

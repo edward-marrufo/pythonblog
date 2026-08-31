@@ -1,0 +1,64 @@
+#/basicblog/docker-compose.prd.yaml
+services:
+  postgres:
+    image: postgres:17.9-trixie
+    container_name: db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+    networks:
+      - backend
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: api
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      GOOGLE_PROJECT_ID: ${GOOGLE_PROJECT_ID}
+      GOOGLE_SECRET_NAME: ${GOOGLE_SECRET_NAME}
+    depends_on:
+      - postgres
+    # Assign to two separate networks because we want separation of concerns
+    networks:
+      - backend
+      - web
+    restart: unless-stopped
+
+  frontend-build:
+    profiles:
+      - build
+
+    image: node:24-alpine3.23
+
+    working_dir: /app
+    volumes:
+      - ./frontend/app:/app:z
+      - /opt/nginx/html/blog:/output:z
+
+    command: >
+      sh -c "
+        npm ci &&
+        npm run build &&
+        rm -fr /output/* &&
+        cp -r dist/* /output/
+      "
+
+
+volumes:
+  pg_data:
+
+networks:
+  backend:
+  
+  web:
+    external: true
